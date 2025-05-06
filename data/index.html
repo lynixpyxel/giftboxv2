@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Untuk Kamu 💖</title>
+  <style>
+    body {
+      background-color: #ffe6f0;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding-top: 10px; /* reduced from 40px */
+      color: #cc0066;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5em;
+    }
+
+    p {
+      font-size: 1.1rem;
+      margin-top: -10px;
+      margin-bottom: 24px;
+    }
+
+    .mini-player {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #fff0f6;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(255, 105, 180, 0.13);
+      padding: 18px 18px 14px 18px;
+      max-width: 320px;
+      margin: 0 auto 30px auto;
+      gap: 12px;
+    }
+    .album-art {
+      width: 380px; /* increased from 320px */
+      height: 380px; /* increased from 320px */
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 2px 8px rgba(255, 105, 180, 0.18);
+      margin-bottom: 10px;
+      background: #ffd6e6;
+      display: block;
+    }
+    .mini-player button {
+      background: none;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-size: 2.2rem;
+      color: #e60073;
+      padding: 0 8px;
+      border-radius: 50%;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    h3 {
+      text-align: left;
+      margin: 8px 0 4px 10vh;
+      font-size: 1.1rem;
+      font-weight: 600;
+      width: 100%;
+      color: #cc0066;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #ffd6e6;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 12px 0 0 0;
+      position: relative;
+    }
+    .progress {
+      height: 100%;
+      background: #ff66a3;
+      width: 0%;
+      transition: width 0.2s;
+    }
+    .time-info {
+      font-size: 0.9rem;
+      color: #993366;
+      margin-top: 8px;
+      text-align: right;
+      width: 100%;
+    }
+    button.main-btn {
+      background-color: #ff66a3;
+      border: none;
+      color: white;
+      padding: 15px 25px;
+      font-size: 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(255, 105, 180, 0.4);
+      transition: 0.2s;
+      margin-bottom: 18px;
+    }
+    button.main-btn:hover {
+      background-color: #e60073;
+    }
+    .footer {
+      margin-top: 60px;
+      font-size: 0.9rem;
+      color: #993366;
+    }
+    .wrapper {
+      margin-top: 20px; /* reduced from 70px */
+    }
+    @media (max-width: 480px) {
+      body {
+        padding-top: 4px; /* reduced further for mobile */
+      }
+      h1 {
+        font-size: 1.4rem;
+      }
+      .mini-player {
+        max-width: 98vw;
+        padding: 10px 6px 8px 6px;
+        gap: 8px;
+      }
+      .album-art {
+        width: 90vw; /* much larger on mobile */
+        max-width: 300px;
+        height: 90vw;
+        max-height: 300px;
+        min-width: 180px;
+        min-height: 180px;
+      }
+      button.main-btn {
+        font-size: 1rem;
+        padding: 10px 14px;
+      }
+      .wrapper {
+        margin-top: 10px; /* reduced for mobile */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Hai Kamu 💌</h1>
+    <p>Tekan tombol play di bawah ini, aku putar lagu spesial buatmu~</p>
+    <div class="mini-player">
+      <img src="/cover.jpg" alt="Album Art" class="album-art" />
+      <h3>Love - w2e</h3>
+      <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+      </div>
+      <div class="time-info">
+        <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+      </div>
+      <button id="playerBtn" aria-label="Play/Pause" onclick="toggleAudio()">
+        <span id="playerIcon">&#9654;</span>
+      </button>
+    </div>
+    <button class="main-btn" onclick="window.location.href='/next'">Ganti Gambar</button>
+  </div>
+  <audio id="lagu" src="/lagu.mp3"></audio>
+  <div class="footer">
+    <p>~ made with 💗 lymn1x~</p>
+  </div>
+  <script>
+    const audio = document.getElementById("lagu");
+    const playerBtn = document.getElementById("playerBtn");
+    const playerIcon = document.getElementById("playerIcon");
+    const progress = document.getElementById("progress");
+    const currentTimeElement = document.getElementById("currentTime");
+    const durationElement = document.getElementById("duration");
+    let isPlaying = false;
+
+    function toggleAudio() {
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+
+    audio.addEventListener('play', () => {
+      playerIcon.innerHTML = '&#10073;&#10073;'; // pause icon
+    });
+    audio.addEventListener('pause', () => {
+      playerIcon.innerHTML = '&#9654;'; // play icon
+    });
+    audio.addEventListener('ended', () => {
+      playerIcon.innerHTML = '&#9654;';
+      progress.style.width = '0%';
+    });
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        progress.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
+        const currentMinutes = Math.floor(audio.currentTime / 60);
+        const currentSeconds = Math.floor(audio.currentTime % 60);
+        const durationMinutes = Math.floor(audio.duration / 60);
+        const durationSeconds = Math.floor(audio.duration % 60);
+        currentTimeElement.textContent = `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds}`;
+        durationElement.textContent = `${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+      }
+    });
+    // Optional: click progress bar to seek
+    document.querySelector('.progress-bar').addEventListener('click', function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percent = x / rect.width;
+      audio.currentTime = percent * audio.duration;
+    });
+  </script>
+</body>
+</html>
