@@ -20,24 +20,21 @@ const char* password = "";
 // Buffer untuk render per blok
 uint16_t blokBuffer[40 * 40];
 
-// Variabel untuk mengatur orientasi
-bool setLandscape = true; // Ubah true/false untuk orientasi
-
 // Fungsi untuk menampilkan gambar dari PROGMEM
 void drawImageFromProgmem(const uint16_t* imageData) {
-  int w = setLandscape ? 280 : 240;
-  int h = setLandscape ? 240 : 280;
-  int blockSize = 40;
-  for (int y = 0; y < h; y += blockSize) {
-    for (int x = 0; x < w; x += blockSize) {
-      for (int by = 0; by < blockSize; by++) {
-        for (int bx = 0; bx < blockSize; bx++) {
-          if ((x + bx < w) && (y + by < h)) {
-            blokBuffer[by * blockSize + bx] = pgm_read_word(&imageData[(y + by) * w + (x + bx)]);
+  // Render gambar dengan ukuran 280x240 (landscape)
+  for (int y = 0; y < 240; y += 40) {
+    for (int x = 0; x < 280; x += 40) {
+      // Ambil data dari PROGMEM ke buffer
+      for (int by = 0; by < 40; by++) {
+        for (int bx = 0; bx < 40; bx++) {
+          if ((x + bx < 280) && (y + by < 240)) {
+            blokBuffer[by * 40 + bx] = pgm_read_word(&imageData[(y + by) * 280 + (x + bx)]);
           }
         }
       }
-      tft.pushImage(x, y, blockSize, blockSize, blokBuffer, TFT_RGB);
+      // Tampilkan blok
+      tft.pushImage(x, y, 40, 40, blokBuffer, TFT_RGB);
       delay(5);
     }
   }
@@ -70,18 +67,13 @@ void switchToNextImage() {
 // Fungsi untuk menampilkan gambar love kecil di tengah layar
 void showLoveIcon() {
   int y = (240 - 200) / 2;
-  int x = (280 - 200) / 2;
-  int xx = setLandscape ? x : y;
-  int yy = setLandscape ? y : x; 
-  tft.pushImage(xx, yy, 200, 200, love, TFT_RGB);
+  int x = (280 - 200) / 2; 
+  tft.pushImage(x, y, 200, 200, love, TFT_RGB);
 }
-//bootlogo cuy biar kyk OS :v
 void booting() {
   int y = (240 - 200) / 2;
-  int x = (280 - 200) / 2;
-  int xx = setLandscape ? x : y;
-  int yy = setLandscape ? y : x;
-  tft.pushImage(xx, yy, 200, 200, bootlogo, TFT_RGB);
+  int x = (280 - 200) / 2; 
+  tft.pushImage(x, y, 200, 200, bootlogo, TFT_RGB);
 }
 
 // Fungsi untuk menampilkan teks dengan word wrap otomatis
@@ -127,17 +119,17 @@ void drawWrappedText(String msg, int x, int y, int maxWidth) {
 }
 
 // Fungsi animasi love jedag-jedug 2 frame
-//nothing here :/
 
-// text animasi
+
+// Fungsi animasi teks dengan word wrap, font 3, dan memenuhi satu layar
 void showAnimatedText() {
-  String msg = "haii, sebelum lanjut koneksikan dulu ke wifi EchoBOX <3";
-  tft.setTextColor(TFT_PINK, TFT_WHITE);
+  String msg = "haii, sebelum lanjut koneksikan dulu ke wifi EchoBOX";
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextDatum(TL_DATUM);
   tft.setTextFont(4); // font ukuran 3
   int x = 10;
   int y = 10;
-  int maxWidth = setLandscape ? 270 : 230;
+  int maxWidth = 270;
   for (int i = 1; i <= msg.length(); i++) {
     tft.fillRect(0, 0, 240, 280, TFT_BLACK); // clear seluruh layar
     drawWrappedText(msg.substring(0, i), x, y, maxWidth);
@@ -150,9 +142,9 @@ void setup() {
   
   // TFT setup
   tft.begin();
-  tft.setSwapBytes(true);
-  tft.setRotation(setLandscape ? 3 : 4);
+  tft.setRotation(3);
   tft.fillScreen(TFT_BLACK);
+  tft.setSwapBytes(true);
   booting();
   delay(2000);
   tft.fillScreen(TFT_BLACK);
