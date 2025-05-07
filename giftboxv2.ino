@@ -9,35 +9,14 @@ TFT_eSPI tft = TFT_eSPI();
 AsyncWebServer server(80);
 DNSServer dnsServer;
 
-const char* ssid = "RomanticAP";
+const char* ssid = "EchoBOX";
 const char* password = "";
-
-// Teknik 1: Pisahkan gambar ke file header terpisah
-// File: image1.h
-// -------------------------------------------
-// #ifndef IMAGE1_H
-// #define IMAGE1_H
-// const uint16_t gambar1[240 * 280] PROGMEM = {
-//   0xef5c, 0xef5c, ... // data gambar 1
-// };
-// #endif
-// -------------------------------------------
-
-// File: image2.h
-// -------------------------------------------
-// #ifndef IMAGE2_H
-// #define IMAGE2_H
-// const uint16_t gambar2[240 * 280] PROGMEM = {
-//   0xf123, 0xf123, ... // data gambar 2
-// };
-// #endif
-// -------------------------------------------
 
 // Include semua file header gambar
 #include "img1.h"
 #include "img2.h"
 #include "img3.h" // Dan seterusnya sesuai kebutuhan
-
+#include "icon.h" //love and bootlogo
 // Buffer untuk render per blok
 uint16_t blokBuffer[40 * 40];
 
@@ -48,7 +27,7 @@ void drawImageFromProgmem(const uint16_t* imageData) {
       
       // Ambil data dari PROGMEM ke buffer
       for (int by = 0; by < 40; by++) {
-        for (int bx = 0; bx < 40; bx++) {
+        for (int bx = 0; by < 40; bx++) {
           if ((x + bx < 240) && (y + by < 280)) {
             blokBuffer[by * 40 + bx] = pgm_read_word(&imageData[(y + by) * 240 + (x + bx)]);
           }
@@ -86,14 +65,94 @@ void switchToNextImage() {
   }
 }
 
+// Fungsi untuk menampilkan gambar love kecil di tengah layar
+void showLoveIcon() {
+  int y = (240 - 200) / 2;
+  int x = (280 - 200) / 2; // agak ke atas biar muat teks di bawahnya
+  tft.pushImage(x, y, 200, 200, love, TFT_RGB);
+}
+void booting() {
+  int y = (240 - 200) / 2;
+  int x = (280 - 200) / 2; // agak ke atas biar muat teks di bawahnya
+  tft.pushImage(x, y, 200, 200, bootlogo, TFT_RGB);
+}
+
+// Fungsi untuk menampilkan teks dengan word wrap otomatis
+void drawWrappedText(String msg, int x, int y, int maxWidth) {
+  tft.setTextDatum(TL_DATUM);
+  int cursorY = y;
+  String line = "";
+  String word = "";
+  int lineHeight = tft.fontHeight();
+  for (int i = 0; i <= msg.length(); i++) {
+    char c = (i < msg.length()) ? msg[i] : ' ';
+    if (c == ' ' || c == '\n' || i == msg.length()) {
+      if (line.length() == 0) {
+        line = word;
+      } else {
+        String testLine = line + " " + word;
+        int w = tft.textWidth(testLine);
+        if (w > maxWidth) {
+          // Bersihkan area baris sebelum menulis
+          tft.fillRect(x, cursorY, maxWidth, lineHeight, TFT_BLACK);
+          tft.drawString(line, x, cursorY);
+          cursorY += lineHeight;
+          line = word;
+        } else {
+          line = testLine;
+        }
+      }
+      if (c == '\n') {
+        tft.fillRect(x, cursorY, maxWidth, lineHeight, TFT_BLACK);
+        tft.drawString(line, x, cursorY);
+        cursorY += lineHeight;
+        line = "";
+      }
+      word = "";
+    } else {
+      word += c;
+    }
+  }
+  if (line.length() > 0) {
+    tft.fillRect(x, cursorY, maxWidth, lineHeight, TFT_BLACK);
+    tft.drawString(line, x, cursorY);
+  }
+}
+
+// Fungsi animasi love jedag-jedug 2 frame
+
+
+// Fungsi animasi teks dengan word wrap, font 3, dan memenuhi satu layar
+void showAnimatedText() {
+  String msg = "haii, sebelum lanjut koneksikan dulu ke wifi EchoBOX";
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextDatum(TL_DATUM);
+  tft.setTextFont(4); // font ukuran 3
+  int x = 10;
+  int y = 10;
+  int maxWidth = 270;
+  for (int i = 1; i <= msg.length(); i++) {
+    tft.fillRect(0, 0, 240, 280, TFT_BLACK); // clear seluruh layar
+    drawWrappedText(msg.substring(0, i), x, y, maxWidth);
+    delay(35);
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   
   // TFT setup
   tft.begin();
-  tft.setRotation(4);
+  tft.setRotation(3);
   tft.fillScreen(TFT_BLACK);
   tft.setSwapBytes(true);
+  booting();
+  delay(2000);
+  tft.fillScreen(TFT_BLACK);
+  showLoveIcon();
+  delay(1000);
+  tft.fillScreen(TFT_BLACK);
+    showAnimatedText();
   
   // WiFi AP mode
   WiFi.softAP(ssid, password);
@@ -116,9 +175,6 @@ void setup() {
   }
   Serial.println("LittleFS mounted successfully");
   
-  // Tampilkan gambar pertama
-  drawImageFromProgmem(gambar1);
-  
   // Web server setup untuk mengontrol gambar
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(LittleFS, "/index.html", "text/html");
@@ -134,11 +190,6 @@ void setup() {
     switchToNextImage();
     request->redirect("/");
   });
-  
-  // Jika menggunakan file MP3 dari SPIFFS/LittleFS
-  // server.on("/lagu.mp3", HTTP_GET, [](AsyncWebServerRequest *request) {
-  //   request->send(LittleFS, "/lagu.mp3", "audio/mpeg");
-  // });
   
   server.begin();
   Serial.println("HTTP server started");
